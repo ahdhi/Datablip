@@ -93,3 +93,29 @@ docker:
 help:
 	@echo "Available targets:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+.PHONY: server
+server:
+	go build -o bin/datablip-server ./cmd/datablip-server
+
+.PHONY: frontend
+frontend:
+	cd web/frontend && npm install && npm run build
+
+.PHONY: run-server
+run-server: server
+	./bin/datablip-server
+
+.PHONY: dev
+dev:
+	# Run backend in one terminal
+	go run ./cmd/datablip-server/main.go &
+	# Run frontend dev server in another
+	cd web/frontend && npm start
+
+.PHONY: build-all
+build-all: build server frontend
+
+.PHONY: docker-full
+docker-full:
+	docker build -f Dockerfile.full -t datablip-full:latest .
